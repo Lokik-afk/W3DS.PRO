@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="content">
+  <!-- File Upload Section -->
+  <div class="section">
+    <h2>🚀 Upload a File</h2>
+    <form action="/submit" method="POST" enctype="multipart/form-data" id="upload-form">
+      <label>User Name:</label>
+      <input type="text" name="user" placeholder="Enter Your Name" class="input-field" required>
+
+      <label>Choose a File:</label>
+      <input type="file" name="v_file" accept=".*" class="input-field" required>
+
+      <button type="submit" class="btn">Upload File</button>
+    </form>
+    <a href="{{ node_address }}/mine" class="btn">Mine a Block</a>
+  </div>
+
+  <!-- Uploaded Files Section -->
+  <div class="section">
+    <h2>📂 Uploaded Files</h2>
+    <div class="file-list">
+      {% for post in request_tx %}
+      <div class="file-card">
+        <div class="file-icon">📄</div>
+        <div class="file-name">{{ post.v_file }}</div>
+        <a href="{{ url_for('download_file', variable=post.v_file) }}" class="option-btn">Download</a>
+      </div>
+      {% endfor %}
+    </div>
+
+    <h3>📊 Storage Used</h3>
+    <p id="storage-text">{{ (request_tx|length * 25) }}% of your available storage is used.</p>
+    <div class="progress-container">
+      <div id="progress-bar" class="progress-bar" style="width: {{ (request_tx|length * 25) }}%;"></div>
+    </div>
+
+    <h3>🔗 Why Decentralized?</h3>
+    <ul class="benefits-list">
+      <li>- No single point of failure</li>
+      <li>- Enhanced security & privacy</li>
+      <li>- Data redundancy ensures availability</li>
+      <li>- Censorship-resistant & transparent</li>
+    </ul>
+  </div>
+</div>
+
+<div class="side-by-side-container">
+  <section class="section mt-6 w-1/2 text-center">
+      <h2 class="text-3xl font-semibold mb-4">🌗 Light / Dark Mode</h2>
+      <label class="theme-switch">
+          <input type="checkbox" id="theme-toggle">
+          <span class="slider round"></span>
+      </label>
+  </section>
+
+  <section class="section mt-6 w-1/2 text-center">
+      <span class="reload">SYNC</span>
+  </section>
+</div>
+
+<!-- Functionality Banners -->
+<div class="banners">
+  <div class="banner">
+    <h3>🔒 Secure File Storage</h3>
+    <p>Your files are encrypted and stored securely across a decentralized network, ensuring maximum privacy and protection.</p>
+  </div>
+
+  <div class="banner">
+    <h3>🌐 Decentralized Network</h3>
+    <p>No single point of failure. Your data is distributed across multiple nodes, ensuring high availability and reliability.</p>
+  </div>
+</div>
+
+<script>
+  // Update storage on form submission
+  document.getElementById('upload-form').addEventListener('submit', function() {
+    // This will run before the actual form submission
+    const currentFiles = document.querySelectorAll('.file-card').length;
+    const newPercentage = Math.min((currentFiles + 1) * 25, 100);
+    
+    // Update the display immediately (will be properly updated after page reload)
+    document.getElementById('storage-text').textContent = 
+      `${newPercentage}% of your available storage is used.`;
+    document.getElementById('progress-bar').style.width = `${newPercentage}%`;
+  });
+</script>
+{% endblock %}

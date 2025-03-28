@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vault - Secure File Storage</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.10.4/gsap.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto+Mono:wght@400;500&display=swap');
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background: #000;
+            color: #fff;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            /* Remove overflow: hidden; */
+        }
+
+
+        .light-mode {
+            background: #fff;
+            color: #000;
+        }
+
+        .light-mode .section {
+            background: rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.18);
+        }
+
+        /* Globe */
+        #globe-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+            /* Ensure it doesn't block interactions */
+        }
+
+        /* Main Content */
+        .content {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            width: 90%;
+            max-width: 1200px;
+            margin-top: 20px;
+        }
+
+        .section {
+            width: 48%;
+            padding: 20px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .header,
+        .footer {
+            width: 100%;
+            text-align: center;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .footer {
+            width: 100%;
+            text-align: center;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
+            margin-top: 40px;
+            /* Add margin to prevent overlap */
+        }
+
+        .input-field {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .btn {
+            background: white;
+            color: black;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 8px;
+            width: 100%;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: #ccc;
+        }
+
+        /* Banner Styles */
+        .banner {
+            width: 100%;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .banner h3 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .banner p {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .light-mode .banner {
+            background: rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.18);
+        }
+
+        .light-mode .banner p {
+            color: rgba(0, 0, 0, 0.8);
+        }
+
+        /* Slider Switch Styles */
+        .theme-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .theme-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        /* Side-by-Side Container */
+        .side-by-side-container {
+            display: flex;
+            justify-content: space-between;
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            margin-top: 20px;
+            /* Adjust as needed */
+        }
+
+        /* Adjust Section Widths */
+        .side-by-side-container .section {
+            width: 48%;
+            /* Slightly less than 50% to account for spacing */
+            margin: 0;
+            /* Remove default margins */
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: #2196F3;
+            /* Blue color for light mode */
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Round slider */
+        .round {
+            border-radius: 34px;
+        }
+
+        .round:before {
+            border-radius: 50%;
+        }
+
+        /* Theme-specific slider colors */
+        .light-mode .slider {
+            background-color: #2196F3;
+            /* Blue color for light mode */
+        }
+
+        .light-mode .slider:before {
+            background-color: white;
+        }
+
+        body:not(.light-mode) .slider {
+            background-color: #ccc;
+            /* Gray color for dark mode */
+        }
+
+        body:not(.light-mode) .slider:before {
+            background-color: black;
+        }
+
+        .reload {
+            font-size: 5rem;
+            /* Adjust the size as needed */
+            cursor: pointer;
+            /* Add a pointer cursor to indicate it's clickable */
+            display: inline-block;
+            /* Required for transform to work */
+            transition: transform 0.3s ease;
+            /* Add a smooth rotation animation */
+        }
+
+        /* Hover Effect */
+        .reload:hover {
+            transform: rotate(360deg);
+            /* Rotate the symbol on hover */
+        }
+
+        /* File Carousel Styles */
+        .file-carousel {
+            display: flex;
+            gap: 20px;
+            /* Space between file cards */
+            overflow-x: auto;
+            /* Enable horizontal scrolling */
+            padding: 20px 0;
+            scrollbar-width: thin;
+            /* For Firefox */
+            scrollbar-color: #888 transparent;
+            /* For Firefox */
+        }
+
+        input[type="file"] {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 8px;
+    border-radius: 5px;
+    width: 100%;
+}
+
+        /* File Card Styles */
+        .file-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+
+        .file-card:hover {
+            transform: translateY(-10px);
+            /* Lift card on hover */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            /* Add shadow on hover */
+        }
+
+        .file-icon {
+    font-size: 1.5rem;
+    margin-right: 10px;
+}
+        .file-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .file-size {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Scrollbar Styles (for WebKit browsers) */
+        .file-carousel::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .file-carousel::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .file-carousel::-webkit-scrollbar-track {
+            background: transparent;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Globe -->
+    <div id="globe-container"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <h1 class="text-4xl font-bold">Vault - Secure File Storage</h1>
+        <p class="text-lg">The future of decentralized and secure storage.</p>
+    </header>
+
+    <!-- Main Content -->
+    <main class="content">
+        <!-- File Upload Section -->
+        <div class="section">
+            <h2 class="text-3xl font-semibold mb-4 text-left">🚀 Upload a File</h2>
+            <label class="block mb-2 text-lg text-left">File Name:</label>
+            <input type="text" placeholder="Enter file name" class="input-field">
+
+            <label class="block mb-2 text-lg text-left">Choose a File:</label>
+            <input type="file" class="input-field">
+
+            <button class="btn">Upload File</button>
+            <button class="btn">Mine a Block</button>
+        </div>
+
+        <!-- Uploaded Files Section -->
+        <div class="section">
+            <h2 class="text-3xl font-semibold mb-4 text-left">📂 Uploaded Files</h2>
+            <ul id="file-list" class="text-left">
+                <li>File1.pdf (2.3MB)</li>
+                <li>Image.png (1.1MB)</li>
+                <li>Document.docx (540KB)</li>
+            </ul>
+
+            <h3 class="text-xl font-semibold mt-6 text-left">📊 Storage Used</h3>
+            <p class="text-left">75% of your available storage is used.</p>
+            <div class="w-full bg-gray-700 rounded-full h-4 mt-2">
+                <div class="bg-white h-4 rounded-full" style="width: 75%;"></div>
+            </div>
+
+            <h3 class="text-xl font-semibold mt-6 text-left">🔗 Why Decentralized?</h3>
+            <p class="text-left text-sm">
+                - No single point of failure.<br>
+                - Enhanced security & privacy.<br>
+                - Data redundancy ensures availability.<br>
+                - Censorship-resistant & transparent.<br>
+            </p>
+        </div>
+
+    </main>
+
+    <div class="side-by-side-container">
+        <section class="section mt-6 w-1/2 text-center">
+            <h2 class="text-3xl font-semibold mb-4">🌗 Light / Dark Mode</h2>
+            <label class="theme-switch">
+                <input type="checkbox" id="theme-toggle">
+                <span class="slider round"></span>
+            </label>
+        </section>
+
+        <section class="section mt-6 w-1/2 text-center">
+            <span class="reload">&#x21bb;</span>
+        </section>
+    </div>
+
+    <section class="section mt-6 w-3/4 text-center">
+
+        <!-- Functionality Banners -->
+        <div class="banner">
+            <h3>🔒 Secure File Storage</h3>
+            <p>Your files are encrypted and stored securely across a decentralized network, ensuring maximum privacy and
+                protection.</p>
+        </div>
+
+        <div class="banner">
+            <h3>🌐 Decentralized Network</h3>
+            <p>No single point of failure. Your data is distributed across multiple nodes, ensuring high availability
+                and reliability.</p>
+        </div>
+    </section>
+
+    <section class="section mt-6 w-3/4 text-center">
+        <h2 class="text-3xl font-semibold mb-6">📁 Uploaded Files</h2>
+        <div class="file-carousel">
+            <!-- Placeholder for File Cards -->
+            <div class="file-card">
+                <div class="file-icon">📄</div>
+                <h3 class="file-name">File1.pdf</h3>
+                <p class="file-size">2.3MB</p>
+            </div>
+            <div class="file-card">
+                <div class="file-icon">🖼️</div>
+                <h3 class="file-name">Image.png</h3>
+                <p class="file-size">1.1MB</p>
+            </div>
+            <div class="file-card">
+                <div class="file-icon">📝</div>
+                <h3 class="file-name">Document.docx</h3>
+                <p class="file-size">540KB</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p class="text-lg">&copy; 2025 Vault. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const themeToggle = document.getElementById('theme-toggle');
+        themeToggle.addEventListener('change', () => {
+            document.body.classList.toggle('light-mode');
+            // Update globe color based on theme
+            if (document.body.classList.contains('light-mode')) {
+                globe.material.color.set(0x000000); // Black color for light mode
+            } else {
+                globe.material.color.set(0xffffff); // White color for dark mode
+            }
+        });
+    </script>
+
+    <!-- Globe Animation -->
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true });
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('globe-container').appendChild(renderer.domElement);
+
+        // Globe with black-and-white wireframe
+        const geometry = new THREE.SphereGeometry(3, 64, 64);
+        const material = new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.1
+        });
+        const globe = new THREE.Mesh(geometry, material);
+        scene.add(globe);
+
+        globe.position.set(0, 0, -10);
+        globe.scale.set(5, 5, 5);
+        camera.position.z = 5;
+
+        // Rotate the globe
+        const animate = () => {
+            requestAnimationFrame(animate);
+            globe.rotation.y += 0.002;
+            renderer.render(scene, camera);
+        };
+        animate();
+
+        // Resize handling
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+
+    </script>
+
+</body>
+
+</html>

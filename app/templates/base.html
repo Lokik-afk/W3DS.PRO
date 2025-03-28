@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vault - Secure File Storage</title>
+  
+  <!-- Load Three.js from CDN with WebGL utils -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.10.4/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/WebGL.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&display=swap');
+
+    :root {
+      --bg-color: #000;
+      --text-color: #fff;
+      --section-bg: rgba(255, 255, 255, 0.1);
+      --section-border: rgba(255, 255, 255, 0.18);
+      --input-bg: rgba(255, 255, 255, 0.1);
+      --input-border: rgba(255, 255, 255, 0.2);
+      --btn-bg: white;
+      --btn-text: black;
+      --btn-hover: #ccc;
+      --progress-bg: white;
+      --globe-color: 0xffffff;
+      --globe-opacity: 0.1;
+    }
+
+    .light-mode {
+      --bg-color: #fff;
+      --text-color: #000;
+      --section-bg: rgba(0, 0, 0, 0.05);
+      --section-border: rgba(0, 0, 0, 0.1);
+      --input-bg: rgba(0, 0, 0, 0.05);
+      --input-border: rgba(0, 0, 0, 0.1);
+      --btn-bg: black;
+      --btn-text: white;
+      --btn-hover: #333;
+      --progress-bg: black;
+      --globe-color: 0x000000;
+      --globe-opacity: 0.05;
+    }
+
+    body {
+      font-family: 'Roboto Mono', monospace;
+      background: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      min-height: 100vh;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    /* Globe */
+    #globe-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* Main Container */
+    .main-container {
+      position: relative;
+      z-index: 10;
+      width: 90%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px 0;
+    }
+
+    /* Content Layout */
+    .content {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    @media (min-width: 1024px) {
+      .content {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    /* Sections */
+    .section {
+      padding: 25px;
+      border-radius: 10px;
+      background: var(--section-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--section-border);
+      transition: background 0.3s ease, border 0.3s ease;
+    }
+
+    /* Form Elements */
+    .input-field {
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      color: var(--text-color);
+      width: 100%;
+      padding: 12px;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      box-sizing: border-box;
+      transition: all 0.3s ease;
+    }
+
+    .btn {
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      font-weight: bold;
+      padding: 12px;
+      border-radius: 8px;
+      width: 100%;
+      margin-top: 10px;
+      cursor: pointer;
+      border: none;
+      text-align: center;
+      display: block;
+      text-decoration: none;
+      transition: background 0.3s ease;
+    }
+
+    .btn:hover {
+      background: var(--btn-hover);
+    }
+
+    /* File Cards */
+    .file-card {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      background: var(--input-bg);
+      border-radius: 5px;
+      margin-bottom: 10px;
+      border: 1px solid var(--input-border);
+      transition: all 0.3s ease;
+    }
+
+    .file-icon {
+      font-size: 1.5rem;
+      margin-right: 15px;
+    }
+
+    .file-name {
+      font-size: 1.1rem;
+      font-weight: bold;
+      flex-grow: 1;
+    }
+
+    .option-btn {
+      background: var(--input-bg);
+      color: var(--text-color);
+      padding: 8px 15px;
+      border-radius: 5px;
+      text-decoration: none;
+      transition: background 0.3s ease;
+    }
+
+    .option-btn:hover {
+      background: var(--section-bg);
+    }
+
+    /* Progress bar */
+    .progress-container {
+      width: 100%;
+      background-color: var(--input-bg);
+      border-radius: 10px;
+      margin: 10px 0;
+      height: 10px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      border-radius: 10px;
+      background-color: var(--progress-bg);
+      transition: background 0.3s ease;
+    }
+
+    /* Navbar */
+    .navbar {
+      background: var(--section-bg);
+      backdrop-filter: blur(10px);
+      width: 100%;
+      padding: 15px 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--section-border);
+    }
+
+    .navbar-brand {
+      font-weight: bold;
+      font-size: 1.2rem;
+      color: var(--text-color);
+      text-decoration: none;
+    }
+
+    .nav-link {
+      color: var(--text-color);
+      padding: 8px 15px;
+      border-radius: 5px;
+      text-decoration: none;
+      transition: background 0.3s ease;
+    }
+
+    .nav-link:hover {
+      background: var(--input-bg);
+    }
+
+    /* Banners */
+    .banner {
+      width: 100%;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+      text-align: center;
+      background: var(--section-bg);
+      backdrop-filter: blur(1px);
+      border: 1px solid var(--section-border);
+    }
+
+    .banner h3 {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .banner p {
+      font-size: 1rem;
+      color: var(--text-color);
+      opacity: 0.8;
+    }
+
+    @media (min-width: 768px) {
+      .banners {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    /* Headings */
+    h2, h3 {
+      margin-top: 0;
+    }
+
+    /* Lists */
+    .benefits-list {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .benefits-list li {
+      margin-bottom: 8px;
+    }
+
+    .side-by-side-container {
+      display: flex;
+      justify-content: space-between;
+      width: 90%;
+      max-width: 1200px;
+      margin: 0 auto;
+      margin-top: 20px;
+    }
+
+    /* Adjust Section Widths */
+    .side-by-side-container .section {
+      width: 48%;
+      margin: 0;
+    }
+
+    /* Theme Toggle */
+    .theme-switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 34px;
+    }
+
+    .theme-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: #2196F3;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+
+    /* Reload Button */
+    .reload {
+      font-size: 2rem;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    .reload:hover {
+      transform: rotate(180deg);
+    }
+  </style>
+</head>
+<body>
+  <!-- Globe Container -->
+  <div id="globe-container"></div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="#" class="navbar-brand">Vault - Secure File Storage</a>
+    <div class="nav-links">
+      <a href="{{ node_address }}/mine" class="nav-link">Logout Vault</a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="main-container">
+    {% block content %}{% endblock %}
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      initGlobe();
+      setupThemeToggle();
+      setupReloadButton();
+    });
+
+    // Theme toggle functionality
+    function setupThemeToggle() {
+      const themeToggle = document.getElementById('theme-toggle');
+      const body = document.body;
+      
+      // Check for saved user preference, if any
+      const currentTheme = localStorage.getItem('theme');
+      if (currentTheme) {
+        body.classList.add(currentTheme);
+        themeToggle.checked = currentTheme === 'light-mode';
+        updateGlobeAppearance(currentTheme);
+      }
+      
+      themeToggle.addEventListener('change', function() {
+        if (this.checked) {
+          body.classList.add('light-mode');
+          localStorage.setItem('theme', 'light-mode');
+          updateGlobeAppearance('light-mode');
+        } else {
+          body.classList.remove('light-mode');
+          localStorage.setItem('theme', '');
+          updateGlobeAppearance('');
+        }
+      });
+    }
+
+    // Reload button functionality
+    function setupReloadButton() {
+      const reloadBtn = document.querySelector('.reload');
+      if (reloadBtn) {
+        reloadBtn.addEventListener('click', function() {
+          location.reload();
+        });
+      }
+    }
+
+    // Globe setup
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ alpha: true });
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.getElementById('globe-container').appendChild(renderer.domElement);
+
+    // Create globe
+    let globe;
+    function createGlobe(globeColor, opacity) {
+      const geometry = new THREE.SphereGeometry(3, 64, 64);
+      const material = new THREE.MeshBasicMaterial({
+        color: globeColor,
+        wireframe: true,
+        transparent: true,
+        opacity: opacity
+      });
+      globe = new THREE.Mesh(geometry, material);
+      scene.add(globe);
+      globe.position.set(0, 0, -10);
+      globe.scale.set(5, 5, 5);
+      camera.position.z = 5;
+    }
+
+    // Initialize globe
+    function initGlobe() {
+      const initialTheme = localStorage.getItem('theme') || '';
+      const globeColor = initialTheme === 'light-mode' ? 0x000000 : 0xffffff;
+      const opacity = initialTheme === 'light-mode' ? 0.05 : 0.1;
+      createGlobe(globeColor, opacity);
+      animate();
+    }
+
+    // Update globe appearance based on theme
+    function updateGlobeAppearance(theme) {
+      if (globe) {
+        scene.remove(globe);
+      }
+      const globeColor = theme === 'light-mode' ? 0x000000 : 0xffffff;
+      const opacity = theme === 'light-mode' ? 0.05 : 0.1;
+      createGlobe(globeColor, opacity);
+    }
+
+    // Rotate the globe
+    const animate = () => {
+      requestAnimationFrame(animate);
+      if (globe) {
+        globe.rotation.y += 0.002;
+      }
+      renderer.render(scene, camera);
+    };
+
+    // Resize handling
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+  <script>
+    function updateStorageUsage() {
+  const fileCount = document.querySelectorAll('.file-card').length;
+  const storagePercent
+  age = Math.min(fileCount * 25, 100); // 25% per file, max 100%
+  
+  // Update text and progress bar
+  document.getElementById('storage-text').textContent = 
+    `${storagePercentage}% of your available storage is used.`;
+  document.getElementById('progress-bar').style.width = `${storagePercentage}%`;
+}
+
+// Call this when page loads
+document.addEventListener('DOMContentLoaded', function() {
+  // Your existing DOMContentLoaded code...
+  updateStorageUsage();
+});
+  </script>
+</body>
+</html>
