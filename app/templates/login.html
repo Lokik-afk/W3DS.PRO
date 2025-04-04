@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vault - Secure File Storage</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.10.4/gsap.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto+Mono:wght@400;500&display=swap');
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background: #000;
+            color: #fff;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Globe */
+        #globe-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Cyberpunk glow effect */
+        .glow-effect {
+            box-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+        }
+        
+        .glow-effect:hover {
+            box-shadow: 0 0 15px rgba(74, 222, 128, 0.8);
+        }
+        
+        /* Input focus effect */
+        .input-focus:focus {
+            box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.5);
+            border-color: #4ade80;
+        }
+        
+        /* Custom checkbox */
+        .custom-checkbox {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid #374151;
+            border-radius: 4px;
+            background-color: #111827;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .custom-checkbox:checked {
+            background-color: #10b981;
+            border-color: #10b981;
+        }
+        
+        .custom-checkbox:checked::after {
+            content: "✓";
+            position: absolute;
+            color: white;
+            font-size: 12px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Pulse animation */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Globe -->
+    <div id="globe-container"></div>
+
+    <!-- Header -->
+    <header class="header text-center mt-12 mb-8 px-4">
+        <h1 class="text-4xl font-bold text-green-400 font-orbitron tracking-tight">VAULT</h1>
+        <p class="text-lg text-gray-300 mt-2">Secure decentralized storage with blockchain protection</p>
+        <div class="flex justify-center mt-4">
+            <div class="h-1 w-16 bg-green-400 glow-effect"></div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="content w-full max-w-md px-6 py-8 bg-gray-900 bg-opacity-70 rounded-xl border border-gray-800 backdrop-blur-sm">
+        <!-- Auth Tabs -->
+        <div class="auth-tabs flex border-b border-gray-800 mb-8">
+            <button id="login-tab" class="tab-active px-6 py-3 font-medium text-green-400 border-b-2 border-green-400 font-orbitron tracking-wider">
+                LOGIN
+            </button>
+            <button id="register-tab" class="px-6 py-3 font-medium text-gray-400 hover:text-green-300 font-orbitron tracking-wider">
+                REGISTER
+            </button>
+        </div>
+    
+        <!-- Login Form -->
+        <form id="login-form" action="/login" method="POST" class="auth-form">
+            <div class="mb-6">
+                <label class="block text-gray-300 mb-3 text-sm tracking-wider">USERNAME</label>
+                <input name="username" type="text" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none input-focus text-gray-200 placeholder-gray-500" required>
+            </div>
+            <div class="mb-6">
+                <label class="block text-gray-300 mb-3 text-sm tracking-wider">SALT</label>
+                <input name="salt" type="text" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none input-focus text-gray-200 placeholder-gray-500" required>
+            </div>
+            <div class="mb-8">
+                <label class="block text-gray-300 mb-3 text-sm tracking-wider">PASSKEY</label>
+                <input name="passkey" type="text" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none input-focus text-gray-200 placeholder-gray-500" required>
+            </div>
+            <button type="submit" class="w-full py-3 bg-green-600 hover:bg-green-700 rounded-lg font-medium transition-all duration-200 glow-effect font-orbitron tracking-wider">
+                ACCESS VAULT
+            </button>
+        </form>
+    
+        <!-- Register Form (Hidden by default) -->
+        <form id="register-form" action="/register" method="POST" class="auth-form hidden">
+            <div class="mb-6">
+                <label class="block text-gray-300 mb-3 text-sm tracking-wider">USERNAME</label>
+                <input name="username" type="text" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none input-focus text-gray-200 placeholder-gray-500" required>
+            </div>
+            <div class="mb-6">
+                <label class="block text-gray-300 mb-3 text-sm tracking-wider">EMAIL</label>
+                <input name="email" type="email" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none input-focus text-gray-200 placeholder-gray-500" required>
+            </div>
+            <div class="mb-6">
+                <label class="block text-gray-300 mb-3 text-sm tracking-wider">PASSWORD</label>
+                <input name="password" type="password" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none input-focus text-gray-200 placeholder-gray-500" required>
+            </div>
+            <div class="mb-8 flex items-start">
+                <input id="terms-check" type="checkbox" class="custom-checkbox mt-1 mr-3" required>
+                <label for="terms-check" class="text-sm text-gray-400 leading-snug">
+                    I agree to deploy a smart contract for my encrypted storage vault on the blockchain network
+                </label>
+            </div>
+            <button type="submit" class="w-full py-3 bg-green-600 hover:bg-green-700 rounded-lg font-medium transition-all duration-200 glow-effect font-orbitron tracking-wider">
+                DEPLOY SECURE VAULT
+            </button>
+        </form>
+    
+        <!-- Contract Deployment Status -->
+        <div id="contract-creation" class="hidden mt-8 p-6 bg-gray-800 rounded-lg border border-green-400 glow-effect">
+            <div class="flex items-center mb-4">
+                <svg class="w-6 h-6 mr-3 text-green-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+                <h3 class="font-mono text-green-400 text-sm tracking-wider">DEPLOYING TO SEPOLIA TESTNET</h3>
+            </div>
+            <div class="text-xs font-mono text-gray-300 overflow-x-auto space-y-2">
+                <p class="text-gray-400">> Establishing connection with Sepolia RPC...</p>
+                <p class="text-gray-400">> Verifying account credentials...</p>
+                <p class="text-gray-400">> Estimating gas fees...</p>
+                <div id="contract-result">
+                    <!-- Dynamic content will be inserted here -->
+                </div>
+                <div id="credentials-display" class="hidden mt-4 pt-4 border-t border-gray-700">
+                    <!-- Credentials will be shown here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer mt-12 mb-8 px-4 text-center">
+        <p class="text-gray-500 text-sm tracking-wider">&copy; 2025 VAULT TECHNOLOGIES | DECENTRALIZED STORAGE NETWORK</p>
+    </footer>
+
+    <!-- Globe Animation Script -->
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true });
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('globe-container').appendChild(renderer.domElement);
+
+        const geometry = new THREE.SphereGeometry(3, 64, 64);
+        const material = new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.1
+        });
+        const globe = new THREE.Mesh(geometry, material);
+        scene.add(globe);
+
+        globe.position.set(0, 0, -10);
+        globe.scale.set(5, 5, 5);
+        camera.position.z = 5;
+
+        const animate = () => {
+            requestAnimationFrame(animate);
+            globe.rotation.y += 0.002;
+            renderer.render(scene, camera);
+        };
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+
+    <!-- Application Logic -->
+    <script>
+        // Tab switching
+        document.getElementById('register-tab').addEventListener('click', () => {
+            document.getElementById('login-tab').classList.remove('tab-active', 'text-green-400', 'border-green-400');
+            document.getElementById('login-tab').classList.add('text-gray-400');
+            document.getElementById('register-tab').classList.add('tab-active', 'text-green-400', 'border-green-400');
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('register-form').classList.remove('hidden');
+        });
+
+        document.getElementById('login-tab').addEventListener('click', () => {
+            document.getElementById('register-tab').classList.remove('tab-active', 'text-green-400', 'border-green-400');
+            document.getElementById('register-tab').classList.add('text-gray-400');
+            document.getElementById('login-tab').classList.add('tab-active', 'text-green-400', 'border-green-400');
+            document.getElementById('register-form').classList.add('hidden');
+            document.getElementById('login-form').classList.remove('hidden');
+        });
+
+        // Login form handling
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    window.location.href = data.redirect || '/';
+                } else {
+                    showError(data.message || 'Login failed. Check your credentials.');
+                }
+            } catch (error) {
+                showError('Network error. Please try again.');
+            }
+        });
+
+        // Registration form handling
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            
+            if (!document.getElementById('terms-check').checked) {
+                showError('You must agree to the terms');
+                return;
+            }
+
+            // Show loading state
+            document.getElementById('register-form').classList.add('hidden');
+            const contractCreation = document.getElementById('contract-creation');
+            contractCreation.classList.remove('hidden');
+            
+            // Clear previous results
+            const contractResult = document.getElementById('contract-result');
+            contractResult.innerHTML = '<p class="text-gray-400">> Sending transaction to network...</p>';
+            document.getElementById('credentials-display').classList.add('hidden');
+
+            try {
+                const formData = new FormData(form);
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    // Update contract deployment info
+                    contractResult.innerHTML = `
+                        <p class="text-green-400">> Contract deployed successfully!</p>
+                        <p class="text-white break-all mt-2">
+                            Address: <a href="https://sepolia.etherscan.io/address/${data.contract_address}" 
+                            target="_blank" class="text-blue-400 underline">
+                            ${data.contract_address}
+                            </a>
+                        </p>
+                        <p class="text-gray-400 mt-1">View on <a href="https://sepolia.etherscan.io/address/${data.contract_address}" 
+                        target="_blank" class="text-blue-400 underline">Etherscan</a></p>
+                    `;
+                    
+                    // Show credentials
+                    const credentialsDiv = document.getElementById('credentials-display');
+                    credentialsDiv.innerHTML = `
+                        <div class="mt-4 p-4 bg-gray-700 rounded border border-yellow-400">
+                            <p class="text-yellow-400 font-mono text-sm">SAVE THESE CREDENTIALS:</p>
+                            <p class="text-white font-mono text-xs mt-2 break-all">SALT: <span class="text-green-400">${data.salt}</span></p>
+                            <p class="text-white font-mono text-xs break-all">PASSKEY: <span class="text-green-400">${data.passkey}</span></p>
+                            <div class="mt-3 flex space-x-2">
+                                <button onclick="copyToClipboard('${data.salt}')" class="text-xs bg-gray-600 hover:bg-gray-500 px-2 py-1 rounded">
+                                    Copy Salt
+                                </button>
+                                <button onclick="copyToClipboard('${data.passkey}')" class="text-xs bg-gray-600 hover:bg-gray-500 px-2 py-1 rounded">
+                                    Copy Passkey
+                                </button>
+                            </div>
+                            <p class="text-red-400 text-xs mt-2">⚠️ Store these securely - they cannot be recovered!</p>
+                        </div>
+                    `;
+                    credentialsDiv.classList.remove('hidden');
+                    
+                    // Redirect after delay
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 15000); // 15 seconds to copy credentials
+                } else {
+                    throw new Error(data.message || 'Registration failed');
+                }
+            } catch (error) {
+                showError(error.message);
+                document.getElementById('register-form').classList.remove('hidden');
+                document.getElementById('contract-creation').classList.add('hidden');
+            }
+        });
+
+        // Helper function to show error messages
+        function showError(message) {
+            const existingErrors = document.querySelectorAll('.error-message');
+            existingErrors.forEach(el => el.remove());
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message mt-4 p-3 bg-red-900 text-red-100 rounded text-sm';
+            errorDiv.textContent = message;
+            
+            const activeForm = document.querySelector('.auth-form:not(.hidden)');
+            activeForm.appendChild(errorDiv);
+            
+            setTimeout(() => {
+                errorDiv.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+                setTimeout(() => errorDiv.remove(), 500);
+            }, 5000);
+        }
+
+        // Clipboard copy function
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const notice = document.createElement('div');
+                notice.className = 'fixed bottom-4 right-4 bg-green-600 text-white px-4 py-2 rounded shadow-lg';
+                notice.textContent = 'Copied to clipboard!';
+                document.body.appendChild(notice);
+                setTimeout(() => notice.remove(), 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+            });
+        }
+    </script>
+</body>
+</html>

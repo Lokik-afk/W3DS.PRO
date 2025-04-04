@@ -1,0 +1,137 @@
+<!-- dash.html (Landing Page) -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vault - Secure File Storage</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.10.4/gsap.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Roboto+Mono:wght@400;500&display=swap');
+
+    body {
+      font-family: 'Roboto Mono', monospace;
+      background: #fff;
+      color: #111;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 5vw;
+    }
+
+    h1 {
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    #globe-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .try-now-btn {
+      background: linear-gradient(135deg, #111 0%, #333 100%);
+      color: #fff;
+      padding: 0.75rem 2rem;
+      font-size: 1.125rem;
+      font-weight: 600;
+      border-radius: 9999px;
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .try-now-btn:hover {
+      background: #000;
+      transform: translateY(-2px) scale(1.03);
+    }
+
+    footer {
+      margin-top: 5rem;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Globe -->
+  <div id="globe-container"></div>
+
+  <!-- Header -->
+  <header class="mb-10">
+    <h1 class="text-5xl font-extrabold leading-tight mb-4">Vault - Secure File Storage</h1>
+    <p class="text-2xl text-gray-700 mb-8">The future of decentralized and secure storage starts here.</p>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <p class="text-xl mb-6"><strong>Meet Vault:</strong><br>
+      A fully secure and decentralized cloud built on the blockchain. Vault empowers users to store, access, and share data with complete transparency and ownership.
+    </p>
+
+    <p class="text-xl mb-6">
+      Just like Bitcoin changed finance, Vault is changing storage — offering permanent, tamper-proof, and censorship-resistant file storage.
+    </p>
+
+    <p class="text-xl mb-6">
+      Whether you're preserving critical information or building the next-gen dApp, Vault gives you the foundation to do it securely.
+    </p>
+
+    <p class="text-xl mb-8">
+      Explore the possibilities. <strong>You're in control now.</strong>
+    </p>
+
+    <!-- Redirect to login.html -->
+    <a href="/login" class="try-now-btn mt-4">Try Now</a>
+  </main>
+
+  <!-- Footer -->
+  <footer class="text-lg text-gray-600 mt-20">
+    &copy; 2025 Vault. All rights reserved.
+  </footer>
+
+  <!-- Globe Animation -->
+  <script>
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ alpha: true });
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.getElementById('globe-container').appendChild(renderer.domElement);
+
+    const geometry = new THREE.SphereGeometry(3, 64, 64);
+    const material = new THREE.MeshBasicMaterial({
+      color: 0x000000,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.05
+    });
+    const globe = new THREE.Mesh(geometry, material);
+    scene.add(globe);
+
+    globe.position.set(0, 0, -10);
+    globe.scale.set(6, 6, 6);
+    camera.position.z = 5;
+
+    const animate = () => {
+      requestAnimationFrame(animate);
+      globe.rotation.y += 0.002;
+      renderer.render(scene, camera);
+    };
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+
+</html>

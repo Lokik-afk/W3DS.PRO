@@ -24,7 +24,7 @@
       <div class="file-card">
         <div class="file-icon">📄</div>
         <div class="file-name">{{ post.v_file }}</div>
-        <a href="{{ url_for('download_file', variable=post.v_file) }}" class="option-btn">Download</a>
+        <a href="{{ url_for('download_file', filename=post.v_file) }}" class="option-btn">Download</a>
       </div>
       {% endfor %}
     </div>

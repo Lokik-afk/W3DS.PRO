@@ -8,7 +8,6 @@ class Block:
         self.prev_hash = prev_hash # hash of the previous block. 
         self.nonce = 0 # nonce useful for mining new block using POW consensus
 
-
     # creates a hash for the block
     def generate_hash(self):
         #  generates hash code using the values stored in block instance. completely random  

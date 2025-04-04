@@ -340,8 +340,11 @@
   <!-- Navbar -->
   <nav class="navbar">
     <a href="#" class="navbar-brand">Vault - Secure File Storage</a>
-    <div class="nav-links">
-      <a href="{{ node_address }}/mine" class="nav-link">Logout Vault</a>
+    <div class="nav-links flex gap-4 items-center">
+      {% if session['username'] %}
+        <span class="text-sm opacity-80">Welcome, <strong>{{ session['username'] }}</strong></span>
+      {% endif %}
+      <a href="{{ url_for('logout') }}" class="nav-link">Logout Vault</a>
     </div>
   </nav>
 
@@ -457,7 +460,7 @@
   <script>
     function updateStorageUsage() {
   const fileCount = document.querySelectorAll('.file-card').length;
-  const storagePercent
+  const storagePercent 
   age = Math.min(fileCount * 25, 100); // 25% per file, max 100%
   
   // Update text and progress bar
